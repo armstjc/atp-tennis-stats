@@ -22,8 +22,8 @@ def get_atp_singles_match_scores(year:int,save=False):
     tourney_fin_commit_arr = sched_df['tourney_fin_commit'].to_list()
     tourney_date_arr = sched_df['tourney_date'].to_list()
 
-    for i in range(0,len(sched_urls_arr)):
-        print(f'On tournament {i+1} of {len(sched_urls_arr)+1} for {year}.')
+    for i in tqdm(range(0,len(sched_urls_arr))):
+        print(f'\nOn tournament {i+1} of {len(sched_urls_arr)+1} for {year}.')
         tourney_year_id = tourney_ids_arr[i]
         tourney_order = tourney_order_arr[i]
         tourney_name = tourney_name_arr[i]
@@ -205,5 +205,5 @@ def get_atp_singles_match_scores(year:int,save=False):
 
 if __name__ == "__main__":
     now = datetime.now().year
-    for i in range(2000,now+1):
+    for i in range(now,now+1):
         get_atp_singles_match_scores(i,True)
