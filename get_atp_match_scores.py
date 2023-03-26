@@ -1,6 +1,7 @@
 from datetime import datetime
 import time
 from bs4 import BeautifulSoup
+import numpy as np
 import pandas as pd
 import requests
 from tqdm import tqdm
@@ -19,7 +20,11 @@ def get_atp_singles_match_scores(year:int,save=False):
     tourney_order_arr = sched_df['tourney_order'].to_list()
     tourney_name_arr = sched_df['tourney_name'].to_list()
     tourney_slug_arr = sched_df['tourney_slug'].to_list()
-    tourney_fin_commit_arr = sched_df['tourney_fin_commit'].to_list()
+    try:
+        tourney_fin_commit_arr = sched_df['tourney_fin_commit'].to_list()
+    except:
+        tourney_fin_commit_arr = np.zeros(200)
+
     tourney_date_arr = sched_df['tourney_date'].to_list()
 
     for i in tqdm(range(0,len(sched_urls_arr))):
@@ -33,11 +38,11 @@ def get_atp_singles_match_scores(year:int,save=False):
 
         url = f"https://www.atptour.com{sched_url}?matchType=singles"
         #print(url)
-        print(f'{tourney_name}')
+        print(f'\n{tourney_name}')
         response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.text,features='lxml')
         
-        time.sleep(2)
+        time.sleep(0.5)
 
         try:
             scores_table = soup.find('table',{'class':'day-table'})
@@ -158,7 +163,7 @@ def get_atp_singles_match_scores(year:int,save=False):
                     row_df['match_id'] = f'{tourney_year_id}-{winner_slug}-{loser_slug}'
                     del winner_slug, loser_slug
                     try:
-                        row_df['match_stats_url_suffix'] = match_content[9].find('a').get('href')
+                        row_df['match_stats_url_suffix'] = match_content[7].find('a').get('href')
                     except:
                         row_df['match_stats_url_suffix'] = None
 
@@ -205,5 +210,5 @@ def get_atp_singles_match_scores(year:int,save=False):
 
 if __name__ == "__main__":
     now = datetime.now().year
-    for i in range(now,now+1):
+    for i in range(1994,2019+1):
         get_atp_singles_match_scores(i,True)
