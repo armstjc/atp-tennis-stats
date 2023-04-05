@@ -217,5 +217,6 @@ if __name__ == "__main__":
     try:
         for i in range(1991,2024):
             get_atp_basic_singles_match_stats(i,True)
-    except:
+    except Exception as e:
         print('Hit a wall when downloading data.')
+        print(f'Explaination: \n\t{e}')
