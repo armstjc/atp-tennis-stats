@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from tqdm import tqdm
@@ -12,7 +13,7 @@ from tqdm import tqdm
 def get_atp_basic_singles_match_stats(year:int,save=False):
     matches_df = pd.DataFrame()
     row_df = pd.DataFrame()
-    headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"}
+    headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"}
     
     print(f'\nGetting the ATP basic match stats for the {year} season.')
 
@@ -34,38 +35,35 @@ def get_atp_basic_singles_match_stats(year:int,save=False):
         url = f"https://www.atptour.com{match_url}"
         
         has_stats_downloaded = Path(f'atp/match_stats/singles/raw/{match_id}.csv').is_file()
-        has_proper_stats = False
 
-        # response = requests.get(url, headers=headers)
-        # soup = BeautifulSoup(response.text,features='lxml')
-        driver = webdriver.Chrome()
-        driver.get(url)
-        soup = BeautifulSoup(driver.page_source,features='lxml')
+        if has_stats_downloaded == False:
+            response = requests.get(url, headers=headers)
+            soup = BeautifulSoup(response.text,features='lxml')
+            # driver = webdriver.Chrome()
+            # driver.get(url)
+            # soup = BeautifulSoup(driver.page_source,features='lxml')
 
-        time.sleep(5)
+            time.sleep(10)
 
-        row_df = pd.DataFrame(
-            {
-                'year':year,
-                'match_id':match_id,
-                'tourney_order':tourney_order,
-                'match_stats_url_suffix':match_url
-            },
-            index=[0]
-        )
-        
-        match_time = str(soup.find('table',{'class':'scores-table'}).find('td',{'class':'time'}).text).replace('\r','').replace('\n','').replace(' ','')
-        match_hr,match_min,match_sec = match_time.split(':')
-        row_df['match_time'] = match_time
-        row_df['match_duration'] = (60 * int(match_hr)) + int(match_min) 
+            row_df = pd.DataFrame(
+                {
+                    'year':year,
+                    'match_id':match_id,
+                    'tourney_order':tourney_order,
+                    'match_stats_url_suffix':match_url
+                },
+                index=[0]
+            )
+            
+            match_time = str(soup.find('table',{'class':'scores-table'}).find('td',{'class':'time'}).text).replace('\r','').replace('\n','').replace(' ','')
+            match_hr,match_min,match_sec = match_time.split(':')
+            row_df['match_time'] = match_time
+            row_df['match_duration'] = (60 * int(match_hr)) + int(match_min) 
 
-        del match_time,match_hr,match_min,match_sec
+            del match_time,match_hr,match_min,match_sec
 
-        match_stats_table = soup.find('table',{'class':'match-stats-table'})
-        match_stats_table = match_stats_table.find_all('tr',{'class':'match-stats-row percent-on'})
-
-
-        if has_stats_downloaded == False:# and has_proper_stats == True:
+            match_stats_table = soup.find('table',{'class':'match-stats-table'})
+            match_stats_table = match_stats_table.find_all('tr',{'class':'match-stats-row percent-on'})
 
             ###########################################################################################################################################################################################################################################
             ##
@@ -216,4 +214,8 @@ def get_atp_basic_singles_match_stats(year:int,save=False):
 
 
 if __name__ == "__main__":
-    get_atp_basic_singles_match_stats(2020,True)
+    try:
+        for i in range(1991,2024):
+            get_atp_basic_singles_match_stats(i,True)
+    except:
+        print('Hit a wall when downloading data.')
